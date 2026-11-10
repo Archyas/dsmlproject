@@ -1,0 +1,9 @@
+---
+title: "script2test"
+format: html
+---
+
+```{r}
+1+1
+```
+
