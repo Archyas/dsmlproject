@@ -1,0 +1,93 @@
+---
+title: "What do Europeans think of the EU?"
+subtitle: "according to Eurobarometer 105.2 (March–April 2026)"
+format: dashboard
+theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(ggplot2)
+library(dplyr)
+
+# cleaned data from scripts/clean_data.R
+Data <- readRDS("data/process/eb_clean.rds")
+
+
+Countries <- Data %>%
+  group_by(country) %>%
+  summarise(positive = round(mean(eu_positive) * 100))
+
+# % positive for each level of money trouble
+Bills <- Data %>%
+  filter(!is.na(bills)) %>% #filter out na responses
+  group_by(bills) %>%
+  summarise(positive = round(mean(eu_positive) * 100))
+
+```
+
+## Row {height="20%"}
+
+```{r}
+#| content: valuebox
+#| title: "Number of people interviewed"
+#| color: primary
+list(value = nrow(Data)) 
+```
+
+```{r}
+#| content: valuebox
+#| title: "How many have a positive image of the EU?"
+#| color: success
+positive <- round(mean(Data$eu_positive) * 100)
+list(value = paste0(positive, "%"))
+```
+
+```{r}
+#| content: valuebox
+#| title: "How many trust the EU?"
+#| color: warning
+trust <- round(mean(Data$trust_eu) * 100)
+list(value = paste0(trust, "%"))
+```
+
+## Row {height="80%"}
+
+### Column {width="33%"}
+
+```{r}
+#| title: "Image of the EU"
+Data %>%
+  filter(!is.na(eu_image)) %>%
+  count(eu_image) %>%
+  ggplot(aes(x = factor(eu_image), y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(x = "1 = very negative, 5 = very positive", y = "Number of people") +
+  theme_minimal()
+```
+
+### Column {width="33%"}
+
+```{r}
+#| title: "Positive image of the EU by country (%)"
+ggplot(Countries, aes(x = reorder(country, positive), y = positive)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(x = NULL, y = "% positive") +
+  theme_minimal()
+```
+
+### Column {width="34%"}
+
+```{r}
+#| title: "Money trouble vs. EU image (people)"
+ggplot(Bills, aes(x = bills, y = positive)) +
+    geom_col(aes(fill = bills), show.legend = FALSE) +
+  scale_fill_brewer(palette = "Blues", direction = -1) +
+  labs(x = "Trouble paying bills (last 12 months)", y = "% positive image of the EU") +
+  theme_minimal()
+```
